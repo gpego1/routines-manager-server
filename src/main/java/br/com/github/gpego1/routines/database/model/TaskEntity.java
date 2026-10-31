@@ -22,7 +22,7 @@ public class TaskEntity {
     private String description;
 
     private LocalDateTime startDateTime;
-    private LocalDateTime finishDateTime;
+    private LocalDateTime endDateTime;
 
 
     @OneToOne

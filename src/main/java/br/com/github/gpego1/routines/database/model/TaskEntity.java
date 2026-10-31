@@ -24,6 +24,12 @@ public class TaskEntity {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
 
+    @Column(name = "duration_hours")
+    private Integer durationHour;
+
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
 
     @OneToOne
     @JoinColumn(name = "category_id")

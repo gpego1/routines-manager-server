@@ -43,7 +43,7 @@ public class UserEntity {
     )
     private Set<RolesEntity> roles;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = false)
     private Set<TaskEntity> tasks;
 
 

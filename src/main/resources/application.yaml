@@ -16,4 +16,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+jwt:
+  expiration: ${JWT_EXPIRATION}
+  key: ${JWT_KEY}
 

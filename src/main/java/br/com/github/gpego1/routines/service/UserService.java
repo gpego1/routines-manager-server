@@ -23,9 +23,8 @@ public class UserService {
     public void createUser(RegisterUserRequest dto) {
         if (userRepository.findByEmail(dto.email()).isPresent()) throw new RuntimeException("User Already registered");
 
-        RolesEntity role = rolesRepository.findByName(String.valueOf(RoleEnumType.ROLE_CLIENT.name()))
-                        .orElseGet(() -> rolesRepository.save(RolesEntity.builder().name(RoleEnumType.ROLE_CLIENT.name()).build())
-                        );
+        RolesEntity role = rolesRepository.findByName(String.valueOf(dto.role()))
+                .orElseThrow(() -> new RuntimeException("Role not found."));
 
         userRepository.save(
                  UserEntity.builder()

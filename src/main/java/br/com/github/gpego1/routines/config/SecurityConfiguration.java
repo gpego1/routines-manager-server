@@ -76,7 +76,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilterFilterRegistrationBean() {
+    public FilterRegistrationBean<CorsFilter> corsFilterRegistrationBean() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
         corsConfig.setAllowedOrigins(List.of("*"));
@@ -85,7 +85,7 @@ public class SecurityConfiguration {
         corsConfig.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", corsConfig);
         org.springframework.web.filter.CorsFilter corsFilter = new org.springframework.web.filter.CorsFilter(source);
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(corsFilter);
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);

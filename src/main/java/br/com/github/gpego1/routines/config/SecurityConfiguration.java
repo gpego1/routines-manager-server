@@ -34,6 +34,7 @@ public class SecurityConfiguration {
                                 )
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**").permitAll()
                         .requestMatchers("/v1/auth/**").permitAll()
                         .requestMatchers("/v1/users/**").permitAll()
                         .requestMatchers("/v1/tasks/**").permitAll()
@@ -50,4 +51,5 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
 }

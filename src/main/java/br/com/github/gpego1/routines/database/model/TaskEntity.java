@@ -42,5 +42,9 @@ public class TaskEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
+    @ManyToOne
+    @JoinColumn(name = "progress_id")
+    private ProgressEntity progress;
+
 
 }

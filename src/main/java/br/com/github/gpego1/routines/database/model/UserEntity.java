@@ -50,6 +50,10 @@ public class UserEntity implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = false)
     private Set<TaskEntity> tasks;
 
+    @OneToOne()
+    @JoinColumn(name = "progress_id")
+    private ProgressEntity progress;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

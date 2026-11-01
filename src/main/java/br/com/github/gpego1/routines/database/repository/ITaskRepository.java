@@ -14,4 +14,11 @@ public interface ITaskRepository extends JpaRepository<TaskEntity, Integer> {
         WHERE t.user_id = :userId
     """, nativeQuery = true)
     List<TaskEntity> findTaskByUserId(@Param("userId") Integer userId);
+
+    @Query(value = """
+        SELECT * FROM tasks t
+        WHERE t.progress_id = :progress_id
+        AND t.finished = 1
+    """, nativeQuery = true)
+    List<TaskEntity> findByProgressIdAndFinishedIsTrue(@Param("progress_id") Integer progressId);
 }

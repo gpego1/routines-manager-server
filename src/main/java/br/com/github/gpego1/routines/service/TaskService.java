@@ -1,8 +1,10 @@
 package br.com.github.gpego1.routines.service;
 import br.com.github.gpego1.routines.database.model.CategoryEntity;
+import br.com.github.gpego1.routines.database.model.ProgressEntity;
 import br.com.github.gpego1.routines.database.model.TaskEntity;
 import br.com.github.gpego1.routines.database.model.UserEntity;
 import br.com.github.gpego1.routines.database.repository.ICategoriesRepository;
+import br.com.github.gpego1.routines.database.repository.IProgressRepository;
 import br.com.github.gpego1.routines.database.repository.ITaskRepository;
 import br.com.github.gpego1.routines.database.repository.IUserRepository;
 import br.com.github.gpego1.routines.dto.requests.CreateTaskRequest;
@@ -22,6 +24,7 @@ public class TaskService {
     private final ITaskRepository taskRepository;
     private final ICategoriesRepository categoriesRepository;
     private final IUserRepository userRepository;
+    private final IProgressRepository progressRepository;
 
     @Transactional
     public CreatedTaskResponse createTask(CreateTaskRequest dto) {
@@ -42,6 +45,7 @@ public class TaskService {
                         .category(category)
                         .finished(false)
                         .user(user)
+                        .progress(user.getProgress())
                         .startDateTime(dto.startDateTime())
                         .endDateTime(dto.endDateTime())
                         .durationHour(dto.endDateTime().getHour() - dto.startDateTime().getHour())
@@ -77,6 +81,13 @@ public class TaskService {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("task not found.")
         );
+
+        int xp = 20;
+        ProgressEntity progress = task.getProgress();
+        progress.setLevel(0 + xp);
+        progress.setStreak(0 + 1);
+        progressRepository.save(progress);
+
         task.setFinished(true);
         task.setEndDateTime(LocalDateTime.now());
         task.setDurationHour(task.getDurationHour() - LocalDateTime.now().getHour());
@@ -135,6 +146,12 @@ public class TaskService {
                         new TaskResponseDto(taskEntity.getName(), taskEntity.getDescription(), taskEntity.getStartDateTime(),
                                 taskEntity.getEndDateTime(), taskEntity.getDurationHour(), taskEntity.getDurationMinutes())
                 )
+                .toList();
+    }
+
+    public List<TaskResponseDto> findTaskByProgressId(Integer progressId) {
+        return taskRepository.findByProgressIdAndFinishedIsTrue(progressId).stream()
+                .map(task -> new TaskResponseDto(task.getName(), task.getDescription(), task.getStartDateTime(), task.getEndDateTime(), task.getDurationHour(), task.getDurationMinutes()))
                 .toList();
     }
 

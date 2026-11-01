@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: routines
   datasource:
@@ -19,7 +21,15 @@ spring:
 jwt:
   expiration: ${JWT_EXPIRATION}
   key: ${JWT_KEY}
-
+telegram:
+  bot-token: ${TELEGRAM_BOT_TOKEN}
+  bot-username: ${TELEGRAM_BOT_USERNAME}
+  webhook-secret: ${TELEGRAM_WEBHOOK_SECRET}
+  webhook-url: ${TELEGRAM_WEBHOOK_URL}
+  api-base-url: ${TELEGRAM_API_BASE_URL}
+  default-timezone: ${APP_TIMEZONE:America/Sao_Paulo}
+  scheduler-enabled: ${TELEGRAM_SCHEDULER_ENABLED:true}
+  scheduler-delay-ms: 30000
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -27,4 +37,3 @@ springdoc:
   api-docs:
     path: /api-docs
     enabled: true
-

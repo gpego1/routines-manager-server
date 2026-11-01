@@ -1,0 +1,7 @@
+version: 1
+name: telegram
+origin: api.telegram.org
+interceptRequests: true
+scenarios:
+  - name: default
+    path: default.js

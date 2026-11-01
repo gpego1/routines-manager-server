@@ -1,0 +1,41 @@
+purpose:
+  stands_in_for: Telegram Bot API sendMessage, using synthetic bot credentials and chats.
+  unblocks: Local verification of reminder HTTP serialization, delivery state and bounded retries.
+assumptions:
+  - id: send-message-contract
+    status: supported
+    claim: sendMessage accepts chat_id and text and returns an ok flag.
+    reason: The provider documents these request fields and response envelope.
+    verification: Official Bot API contract inspected on 2026-11-01; no live bot requests made.
+    source: https://core.telegram.org/bots/api#sendmessage
+    updated_at: '2026-11-01'
+  - id: local-delivery-failures
+    status: supported
+    claim: Against the local mock, HTTP 500 retries three times and does not mark the reminder sent; ok=false also remains unsent.
+    reason: The real RestClient and database-backed delivery service were exercised against the Postman simulation.
+    verification: TelegramSimulationTests passed on 2026-11-01; simulation request events showed one ok=false and three HTTP 500 responses.
+    source: src/test/java/br/com/github/gpego1/routines/TelegramSimulationTests.java
+    updated_at: '2026-11-01'
+  - id: concurrent-delivery
+    status: supported
+    claim: Two concurrent delivery workers against H2 result in one HTTP send and one recorded attempt.
+    reason: Pessimistic locking serializes workers before status re-check.
+    verification: Concurrent worker test passed on 2026-11-01 and the simulation recorded one successful send for chat 12345.
+    source: src/test/java/br/com/github/gpego1/routines/TelegramSimulationTests.java
+    updated_at: '2026-11-01'
+  - id: live-bot-configuration
+    status: unknown
+    claim: Production bot credentials, webhook URL and MySQL locking work in the deployment environment.
+    reason: Tests use synthetic credentials, H2 and local HTTP; production domain and username are not configured.
+    verification: Not tested against the real Telegram or deployed MySQL.
+    source: docs/telegram.md
+    updated_at: '2026-11-01'
+fingerprints:
+  - id: local-telegram-tests
+    date: '2026-11-01'
+    commit: uncommitted-workspace
+    cli: Postman 1.73.0
+decisions: []
+risks_and_open_questions:
+  - A timeout after Telegram accepted the message, or a crash before database commit, may cause duplicate delivery on retry.
+  - Owner mock search was skipped; this local mock is based on the public provider contract.

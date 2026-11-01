@@ -35,6 +35,10 @@ public class UserEntity implements UserDetails {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    private Long telegramChatId;
+    private boolean telegramEnabled;
+    private String timezone;
+
     @UpdateTimestamp
     @Column(name = "last_updated_at")
     private LocalDateTime updatedAt;
@@ -49,11 +53,6 @@ public class UserEntity implements UserDetails {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, orphanRemoval = false)
     private Set<TaskEntity> tasks;
-
-    @OneToOne()
-    @JoinColumn(name = "progress_id")
-    private ProgressEntity progress;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

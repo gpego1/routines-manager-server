@@ -10,7 +10,6 @@ public record UserResponseDto (
         Integer id,
         @NotBlank String name,
         @NotBlank String email,
-        Set<RolesEntity> roles,
-        Integer progressId
+        Set<RolesEntity> roles
 ){
 }

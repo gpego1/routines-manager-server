@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ITaskRepository extends JpaRepository<TaskEntity, Integer> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from TaskEntity t where t.id = :id")
+    Optional<TaskEntity> lockById(Integer id);
     @Query(value = """
         SELECT * FROM tasks t
         WHERE t.user_id = :userId
@@ -17,8 +20,8 @@ public interface ITaskRepository extends JpaRepository<TaskEntity, Integer> {
 
     @Query(value = """
         SELECT * FROM tasks t
-        WHERE t.progress_id = :progress_id
-        AND t.finished = 1
+        WHERE      t.user_id = :userId
+        AND      t.finished = 1
     """, nativeQuery = true)
-    List<TaskEntity> findByProgressIdAndFinishedIsTrue(@Param("progress_id") Integer progressId);
+    List<TaskEntity> findByUserIdWhereFinishedIsTrue(@Param("userId") Integer userId);
 }

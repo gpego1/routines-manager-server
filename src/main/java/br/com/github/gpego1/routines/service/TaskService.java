@@ -1,10 +1,8 @@
 package br.com.github.gpego1.routines.service;
 import br.com.github.gpego1.routines.database.model.CategoryEntity;
-import br.com.github.gpego1.routines.database.model.ProgressEntity;
 import br.com.github.gpego1.routines.database.model.TaskEntity;
 import br.com.github.gpego1.routines.database.model.UserEntity;
 import br.com.github.gpego1.routines.database.repository.ICategoriesRepository;
-import br.com.github.gpego1.routines.database.repository.IProgressRepository;
 import br.com.github.gpego1.routines.database.repository.ITaskRepository;
 import br.com.github.gpego1.routines.database.repository.IUserRepository;
 import br.com.github.gpego1.routines.dto.requests.CreateTaskRequest;
@@ -24,13 +22,15 @@ public class TaskService {
     private final ITaskRepository taskRepository;
     private final ICategoriesRepository categoriesRepository;
     private final IUserRepository userRepository;
-    private final IProgressRepository progressRepository;
+    private final TaskReminderService reminderService;
 
     @Transactional
     public CreatedTaskResponse createTask(CreateTaskRequest dto) {
-        CategoryEntity category = categoriesRepository.findByName(dto.category().name())
-                .orElseGet(() -> categoriesRepository.save(CategoryEntity.builder().name(dto.category().name()).build())
-        );
+        CategoryEntity category = CategoryEntity.builder()
+                .name(dto.category().name())
+                .build();
+
+        categoriesRepository.save(category);
 
         UserEntity user = this.findUser(dto.userId());
 
@@ -45,13 +45,13 @@ public class TaskService {
                         .category(category)
                         .finished(false)
                         .user(user)
-                        .progress(user.getProgress())
                         .startDateTime(dto.startDateTime())
                         .endDateTime(dto.endDateTime())
                         .durationHour(dto.endDateTime().getHour() - dto.startDateTime().getHour())
                         .durationMinutes(dto.endDateTime().getMinute() - dto.startDateTime().getMinute())
                         .build()
         );
+        reminderService.schedule(task);
         return new CreatedTaskResponse(
                 task.getId(),
                 task.getName(),
@@ -77,18 +77,14 @@ public class TaskService {
         );
     }
 
+    @Transactional
     public CreatedTaskResponse finishTask(Integer id) {
-        TaskEntity task = taskRepository.findById(id)
+        TaskEntity task = taskRepository.lockById(id)
                 .orElseThrow(() -> new RuntimeException("task not found.")
         );
 
-        int xp = 20;
-        ProgressEntity progress = task.getProgress();
-        progress.setLevel(0 + xp);
-        progress.setStreak(0 + 1);
-        progressRepository.save(progress);
-
         task.setFinished(true);
+        reminderService.cancel(id);
         task.setEndDateTime(LocalDateTime.now());
         task.setDurationHour(task.getDurationHour() - LocalDateTime.now().getHour());
         task.setDurationMinutes(task.getDurationMinutes() - LocalDateTime.now().getMinute());
@@ -107,7 +103,7 @@ public class TaskService {
 
     @Transactional
     public void updateTask(UpdateTaskRequest dto, Integer id) {
-        TaskEntity task = taskRepository.findById(id)
+        TaskEntity task = taskRepository.lockById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found.")
                 );
 
@@ -132,6 +128,8 @@ public class TaskService {
         task.setDurationHour(durationHours);
         task.setDurationMinutes(durationMinutes);
         taskRepository.save(task);
+        if (Boolean.TRUE.equals(task.getFinished())) reminderService.cancel(id);
+        else reminderService.schedule(task);
     }
 
     public List<TaskResponseDto> findTasksByUserId(Integer userId) {
@@ -149,13 +147,16 @@ public class TaskService {
                 .toList();
     }
 
-    public List<TaskResponseDto> findTaskByProgressId(Integer progressId) {
-        return taskRepository.findByProgressIdAndFinishedIsTrue(progressId).stream()
+    public List<TaskResponseDto> findFinishedTaskByUserId(Integer userId) {
+        return taskRepository.findByUserIdWhereFinishedIsTrue(userId).stream()
                 .map(task -> new TaskResponseDto(task.getName(), task.getDescription(), task.getStartDateTime(), task.getEndDateTime(), task.getDurationHour(), task.getDurationMinutes()))
                 .toList();
     }
 
+    @Transactional
     public void deleteById(Integer id) {
+        taskRepository.lockById(id).orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        reminderService.delete(id);
         taskRepository.deleteById(id);
     }
 

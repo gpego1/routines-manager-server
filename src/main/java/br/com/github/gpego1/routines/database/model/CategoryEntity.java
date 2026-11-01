@@ -1,7 +1,10 @@
 package br.com.github.gpego1.routines.database.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.Set;
 
 @Entity
 @Table(name = "categories")
@@ -16,4 +19,5 @@ public class CategoryEntity {
     private Integer id;
 
     private String name;
+
 }

@@ -51,8 +51,8 @@ public class TaskController {
         return new ResponseEntity<>(taskService.findTasksByUserId(userId), HttpStatus.OK);
     }
 
-    @GetMapping("/progress/{progressId}")
-    public ResponseEntity<List<TaskResponseDto>> findTasksByProgressId(@PathVariable Integer progressId) {
-        return new ResponseEntity<>(taskService.findTaskByProgressId(progressId), HttpStatus.OK);
+    @GetMapping("/finished_tasks/{userId}")
+    public ResponseEntity<List<TaskResponseDto>> findTasksByProgressId(@PathVariable Integer userId) {
+        return new ResponseEntity<>(taskService.findFinishedTaskByUserId(userId), HttpStatus.OK);
     }
 }

@@ -30,6 +30,8 @@ public class TaskEntity {
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
+    private Boolean finished;
+
 
     @OneToOne
     @JoinColumn(name = "category_id")

@@ -2,16 +2,14 @@ package br.com.github.gpego1.routines.presentation;
 import br.com.github.gpego1.routines.dto.requests.LoginRequest;
 import br.com.github.gpego1.routines.dto.requests.RegisterUserRequest;
 import br.com.github.gpego1.routines.dto.responses.TokenResponseDto;
+import br.com.github.gpego1.routines.dto.responses.UserResponseDto;
 import br.com.github.gpego1.routines.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -28,6 +26,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<TokenResponseDto> login(@RequestBody @Valid LoginRequest req) {
         return new ResponseEntity<>(authService.login(req), HttpStatus.OK);
+    }
+
+    @GetMapping("/users/me")
+    public ResponseEntity<UserResponseDto> getUserInfo(@RequestHeader String token) {
+        return new ResponseEntity<>(authService.getUserInfo(token), HttpStatus.OK);
     }
 
 }

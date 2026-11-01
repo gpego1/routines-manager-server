@@ -43,8 +43,10 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User Not Found."));
 
         return new UserResponseDto(
+                user.getId(),
                 user.getName(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRoles()
         );
     }
 

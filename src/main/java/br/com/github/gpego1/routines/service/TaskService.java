@@ -7,10 +7,14 @@ import br.com.github.gpego1.routines.database.repository.ITaskRepository;
 import br.com.github.gpego1.routines.database.repository.IUserRepository;
 import br.com.github.gpego1.routines.dto.requests.CreateTaskRequest;
 import br.com.github.gpego1.routines.dto.requests.UpdateTaskRequest;
+import br.com.github.gpego1.routines.dto.responses.CreatedTaskResponse;
 import br.com.github.gpego1.routines.dto.responses.TaskResponseDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,24 +24,37 @@ public class TaskService {
     private final IUserRepository userRepository;
 
     @Transactional
-    public void createTask(CreateTaskRequest dto) {
+    public CreatedTaskResponse createTask(CreateTaskRequest dto) {
         CategoryEntity category = categoriesRepository.findByName(dto.category().name())
                 .orElseGet(() -> categoriesRepository.save(CategoryEntity.builder().name(dto.category().name()).build())
         );
 
         UserEntity user = this.findUser(dto.userId());
 
-        taskRepository.save(
+        if (!this.isDurationValid(dto.startDateTime(), dto.endDateTime())) {
+            throw new RuntimeException("Invalid date instructions.");
+        }
+
+        TaskEntity task =  taskRepository.save(
                 TaskEntity.builder()
                         .name(dto.name())
                         .description(dto.description())
                         .category(category)
+                        .finished(false)
                         .user(user)
                         .startDateTime(dto.startDateTime())
                         .endDateTime(dto.endDateTime())
                         .durationHour(dto.endDateTime().getHour() - dto.startDateTime().getHour())
                         .durationMinutes(dto.endDateTime().getMinute() - dto.startDateTime().getMinute())
                         .build()
+        );
+        return new CreatedTaskResponse(
+                task.getId(),
+                task.getName(),
+                task.getDescription(),
+                task.getFinished(),
+                task.getDurationHour(),
+                task.getDurationMinutes()
         );
     }
 
@@ -56,11 +73,36 @@ public class TaskService {
         );
     }
 
+    public CreatedTaskResponse finishTask(Integer id) {
+        TaskEntity task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("task not found.")
+        );
+        task.setFinished(true);
+        task.setEndDateTime(LocalDateTime.now());
+        task.setDurationHour(task.getDurationHour() - LocalDateTime.now().getHour());
+        task.setDurationMinutes(task.getDurationMinutes() - LocalDateTime.now().getMinute());
+        taskRepository.save(task);
+
+        return new CreatedTaskResponse(
+                task.getId(),
+                task.getName(),
+                task.getDescription(),
+                task.getFinished(),
+                task.getDurationHour(),
+                task.getDurationMinutes()
+        );
+
+    }
+
     @Transactional
     public void updateTask(UpdateTaskRequest dto, Integer id) {
         TaskEntity task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found.")
                 );
+
+        if (!this.isDurationValid(dto.startDateTime(), dto.endDateTime())) {
+            throw new RuntimeException("Invalid date instructions.");
+        }
 
         Integer durationHours = dto.endDateTime().getHour() - dto.startDateTime().getHour();
         Integer durationMinutes = dto.endDateTime().getMinute() - dto.startDateTime().getMinute();
@@ -81,6 +123,21 @@ public class TaskService {
         taskRepository.save(task);
     }
 
+    public List<TaskResponseDto> findTasksByUserId(Integer userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found.")
+        );
+        List<TaskEntity> tasks = taskRepository.findTaskByUserId(userId);
+        if (tasks.isEmpty()) {return null;}
+
+        return tasks.stream()
+                .map((taskEntity) ->
+                        new TaskResponseDto(taskEntity.getName(), taskEntity.getDescription(), taskEntity.getStartDateTime(),
+                                taskEntity.getEndDateTime(), taskEntity.getDurationHour(), taskEntity.getDurationMinutes())
+                )
+                .toList();
+    }
+
     public void deleteById(Integer id) {
         taskRepository.deleteById(id);
     }
@@ -89,6 +146,20 @@ public class TaskService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User Not found")
         );
+    }
+
+
+    private boolean isDurationValid(LocalDateTime start, LocalDateTime end) {
+        if (start.isBefore(LocalDateTime.now())) return false;
+
+        if (end.getHour() - start.getHour() < 0) return false;
+        if (end.getDayOfMonth() != start.getDayOfMonth()) return false;
+
+        if (start.isAfter(end)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 

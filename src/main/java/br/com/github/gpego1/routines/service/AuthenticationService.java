@@ -7,6 +7,7 @@ import br.com.github.gpego1.routines.database.repository.IUserRepository;
 import br.com.github.gpego1.routines.dto.requests.LoginRequest;
 import br.com.github.gpego1.routines.dto.requests.RegisterUserRequest;
 import br.com.github.gpego1.routines.dto.responses.TokenResponseDto;
+import br.com.github.gpego1.routines.dto.responses.UserResponseDto;
 import br.com.github.gpego1.routines.exceptions.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,5 +65,19 @@ public class AuthenticationService {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    public UserResponseDto getUserInfo(String token) {
+        String username = tokenProvider.catchUsername(token);
+        UserEntity user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new BadRequestException("Invalid Email or password.")
+        );
+        return new UserResponseDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRoles()
+        );
+
     }
 }

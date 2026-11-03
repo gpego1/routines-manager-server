@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  profiles:
+    active: "dev"
+    default: "none"
   config:
     import: optional:file:.env[.properties]
   application:
